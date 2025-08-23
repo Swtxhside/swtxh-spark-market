@@ -42,6 +42,11 @@ export function Header() {
 
         {/* Navigation items */}
         <nav className="flex items-center space-x-2">
+          <Link to="/products">
+            <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+              Products
+            </Button>
+          </Link>
           <Button variant="ghost" size="sm" className="hidden md:inline-flex">
             Become a Vendor
           </Button>

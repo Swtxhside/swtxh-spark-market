@@ -13,4 +13,17 @@ export async function getAllProducts() {
   return data
 }
 
-// ... paste the rest of the functions here ...
+// ✅ Get product by ID
+export async function getProductById(id) {
+  const { data, error } = await supabase
+    .from('products')
+    .select('id, name, description, price, image_url, stock, vendors(store_name)')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('Error fetching product:', error)
+    return null
+  }
+  return data
+}
