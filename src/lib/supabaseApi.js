@@ -1,4 +1,4 @@
-import { supabase } from '../integrations/supabase/client'
+import { supabase } from './supabaseClient'
 
 // ✅ Example function
 export async function getAllProducts() {
