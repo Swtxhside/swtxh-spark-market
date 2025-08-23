@@ -47,9 +47,11 @@ export function Header() {
               Products
             </Button>
           </Link>
-          <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-            Become a Vendor
-          </Button>
+          <Link to="/vendor/dashboard">
+            <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+              Vendor Dashboard
+            </Button>
+          </Link>
           
           <Button variant="ghost" size="icon" className="relative">
             <ShoppingCart className="h-5 w-5" />
@@ -65,9 +67,11 @@ export function Header() {
             <User className="h-5 w-5" />
           </Button>
 
-          <Button variant="hero" size="sm" className="hidden md:inline-flex">
-            Sign In
-          </Button>
+          <Link to="/auth">
+            <Button variant="hero" size="sm" className="hidden md:inline-flex">
+              Sign In
+            </Button>
+          </Link>
         </nav>
       </div>
 
