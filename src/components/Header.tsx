@@ -1,10 +1,31 @@
 import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "@/components/ShoppingCart";
 import { Input } from "@/components/ui/input";
-import { ShoppingCart, User, Search, Menu, Store } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
+import { Search, User, Menu, Store } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been successfully signed out.",
+    });
+    navigate("/");
+  };
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
@@ -52,26 +73,40 @@ export function Header() {
               Vendor Dashboard
             </Button>
           </Link>
-          
-          <Button variant="ghost" size="icon" className="relative">
-            <ShoppingCart className="h-5 w-5" />
-            <Badge 
-              variant="secondary" 
-              className="absolute -top-2 -right-2 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-secondary text-secondary-foreground"
-            >
-              3
-            </Badge>
-          </Button>
+          {/* Shopping Cart */}
+          <ShoppingCart />
 
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-          </Button>
-
-          <Link to="/auth">
-            <Button variant="hero" size="sm" className="hidden md:inline-flex">
-              Sign In
-            </Button>
-          </Link>
+          {/* User Menu */}
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <User className="h-6 w-6" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  My Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/orders')}>
+                  My Orders
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/wishlist')}>
+                  Wishlist
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link to="/auth/customer">
+              <Button variant="hero" size="sm" className="hidden md:inline-flex">
+                Sign In
+              </Button>
+            </Link>
+          )}
         </nav>
       </div>
 

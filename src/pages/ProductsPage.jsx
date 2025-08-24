@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react';
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ProductSearch } from "@/components/ProductSearch";
+import { QuickView } from "@/components/QuickView";
+import { ArrowLeft, Eye, Heart, ShoppingCart } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import { useWishlist } from "@/components/Wishlist";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
