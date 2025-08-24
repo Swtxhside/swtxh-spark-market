@@ -7,6 +7,9 @@ import Index from "./pages/Index";
 import ProductsPage from "./pages/ProductsPage";
 import ProductDetail from "./pages/ProductDetail";
 import Auth from "./pages/Auth";
+import CustomerAuth from "./pages/CustomerAuth";
+import VendorAuth from "./pages/VendorAuth";
+import CustomerDashboard from "./pages/CustomerDashboard";
 import VendorDashboard from "./pages/VendorDashboard";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +26,9 @@ const App = () => (
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/auth/customer" element={<CustomerAuth />} />
+          <Route path="/auth/vendor" element={<VendorAuth />} />
+          <Route path="/dashboard" element={<CustomerDashboard />} />
           <Route path="/vendor/dashboard" element={<VendorDashboard />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

@@ -44,10 +44,19 @@ export function HeroSection() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Button variant="secondary" size="xl">
+              <Button 
+                variant="secondary" 
+                size="xl"
+                onClick={() => window.location.href = '/auth/customer'}
+              >
                 Start Shopping
               </Button>
-              <Button variant="outline" size="xl" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+              <Button 
+                variant="outline" 
+                size="xl" 
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+                onClick={() => window.location.href = '/auth/vendor'}
+              >
                 Become a Vendor
               </Button>
             </div>
