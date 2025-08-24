@@ -2,9 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingBag, Users, TrendingUp, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-marketplace.jpg";
 
 export function HeroSection() {
+  const navigate = useNavigate();
+  
   const stats = [
     { icon: Users, label: "Active Vendors", value: "1,200+" },
     { icon: ShoppingBag, label: "Products Listed", value: "50,000+" },
@@ -47,7 +50,7 @@ export function HeroSection() {
               <Button 
                 variant="secondary" 
                 size="xl"
-                onClick={() => window.location.href = '/auth/customer'}
+                onClick={() => navigate('/auth/customer')}
               >
                 Start Shopping
               </Button>
@@ -55,7 +58,7 @@ export function HeroSection() {
                 variant="outline" 
                 size="xl" 
                 className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-                onClick={() => window.location.href = '/auth/vendor'}
+                onClick={() => navigate('/auth/vendor')}
               >
                 Become a Vendor
               </Button>
