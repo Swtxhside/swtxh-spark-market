@@ -13,6 +13,10 @@ import CustomerAuth from "./pages/CustomerAuth";
 import VendorAuth from "./pages/VendorAuth";
 import CustomerDashboard from "./pages/CustomerDashboard";
 import VendorDashboard from "./pages/VendorDashboard";
+import VendorProductManager from "./pages/VendorProductManager";
+import VendorStorefront from "./pages/VendorStorefront";
+import OrderTracking from "./pages/OrderTracking";
+import AdminDashboard from "./pages/AdminDashboard";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
@@ -34,7 +38,11 @@ const App = () => (
               <Route path="/auth/customer" element={<CustomerAuth />} />
               <Route path="/auth/vendor" element={<VendorAuth />} />
               <Route path="/dashboard" element={<CustomerDashboard />} />
+              <Route path="/orders" element={<OrderTracking />} />
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+              <Route path="/vendor/products" element={<VendorProductManager />} />
+              <Route path="/vendor/:vendorId" element={<VendorStorefront />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

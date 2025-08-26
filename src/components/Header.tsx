@@ -61,18 +61,37 @@ export function Header() {
           </div>
         </div>
 
-        {/* Navigation items */}
+         {/* Navigation items */}
         <nav className="flex items-center space-x-2">
           <Link to="/products">
             <Button variant="ghost" size="sm" className="hidden md:inline-flex">
               Products
             </Button>
           </Link>
-          <Link to="/vendor/dashboard">
+          
+          {/* Vendor Links */}
+          {user && (
+            <>
+              <Link to="/vendor/dashboard">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Vendor Portal
+                </Button>
+              </Link>
+              <Link to="/vendor/products">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Manage Products
+                </Button>
+              </Link>
+            </>
+          )}
+          
+          {/* Admin Link - TODO: Add role check */}
+          <Link to="/admin">
             <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-              Vendor Dashboard
+              Admin
             </Button>
           </Link>
+          
           {/* Shopping Cart */}
           <ShoppingCart />
 
