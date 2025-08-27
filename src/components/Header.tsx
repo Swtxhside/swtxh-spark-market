@@ -85,12 +85,6 @@ export function Header() {
             </>
           )}
           
-          {/* Admin Link - TODO: Add role check */}
-          <Link to="/admin">
-            <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-              Admin
-            </Button>
-          </Link>
           
           {/* Shopping Cart */}
           <ShoppingCart />
