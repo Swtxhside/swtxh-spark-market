@@ -14,9 +14,12 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, userProfile, vendor, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const isVendor = userProfile?.role === 'vendor';
+  const hasActiveSubscription = vendor?.subscription_status === 'active';
 
   const handleSignOut = async () => {
     await signOut();
@@ -63,18 +66,38 @@ export function Header() {
 
          {/* Navigation items */}
         <nav className="flex items-center space-x-2">
-          <Link to="/products">
-            <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-              Products
-            </Button>
-          </Link>
-          
-          {/* Vendor Links */}
-          {user && (
+          {/* Customer Navigation */}
+          {user && !isVendor && (
+            <>
+              <Link to="/products">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Products
+                </Button>
+              </Link>
+              <Link to="/orders">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  My Orders
+                </Button>
+              </Link>
+              <Link to="/wishlist">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Wishlist
+                </Button>
+              </Link>
+            </>
+          )}
+
+          {/* Vendor Navigation - Only after subscription */}
+          {user && isVendor && hasActiveSubscription && (
             <>
               <Link to="/vendor/dashboard">
                 <Button variant="ghost" size="sm" className="hidden md:inline-flex">
-                  Vendor Portal
+                  Dashboard
+                </Button>
+              </Link>
+              <Link to="/vendor/storefront">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  My Shop
                 </Button>
               </Link>
               <Link to="/vendor/products">
@@ -82,12 +105,21 @@ export function Header() {
                   Manage Products
                 </Button>
               </Link>
+              <Link to="/orders">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Orders
+                </Button>
+              </Link>
+              <Link to="/vendor/earnings">
+                <Button variant="ghost" size="sm" className="hidden md:inline-flex">
+                  Earnings
+                </Button>
+              </Link>
             </>
           )}
           
-          
-          {/* Shopping Cart */}
-          <ShoppingCart />
+          {/* Shopping Cart - Only for customers */}
+          {user && !isVendor && <ShoppingCart />}
 
           {/* User Menu */}
           {user ? (
@@ -98,15 +130,38 @@ export function Header() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                  My Dashboard
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/orders')}>
-                  My Orders
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/wishlist')}>
-                  Wishlist
-                </DropdownMenuItem>
+                {isVendor ? (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate('/vendor/dashboard')}>
+                      Vendor Dashboard
+                    </DropdownMenuItem>
+                    {hasActiveSubscription && (
+                      <>
+                        <DropdownMenuItem onClick={() => navigate('/vendor/storefront')}>
+                          My Shop
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/vendor/products')}>
+                          Manage Products
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => navigate('/vendor/earnings')}>
+                          Earnings
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                      My Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/orders')}>
+                      My Orders
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/wishlist')}>
+                      Wishlist
+                    </DropdownMenuItem>
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
                   Sign Out

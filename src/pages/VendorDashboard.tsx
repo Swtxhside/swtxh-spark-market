@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { User, Session } from "@supabase/supabase-js";
-import { Store, Crown, Zap, Rocket } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Store, Crown, Zap, Rocket, ShoppingBag, TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Vendor {
   id: string;
@@ -18,90 +19,35 @@ interface Vendor {
 }
 
 export default function VendorDashboard() {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [vendor, setVendor] = useState<Vendor | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, vendor, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
-    );
+  const hasActiveSubscription = vendor?.subscription_status === 'active';
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        loadVendorData(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  async function loadVendorData(userId: string) {
-    try {
-      const { data, error } = await supabase
-        .from("vendors")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      if (error) throw error;
-      setVendor(data);
-    } catch (error) {
-      console.error("Error loading vendor data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function chooseSubscription(tier: string, rate: number) {
-    if (!user) return;
+  async function updateSubscription(tier: string, rate: number) {
+    if (!user || !vendor) return;
     
     setLoading(true);
     try {
-      if (vendor) {
-        // Update existing vendor
-        const { error } = await supabase
-          .from("vendors")
-          .update({ tier, commission_rate: rate })
-          .eq("user_id", user.id);
+      const { error } = await supabase
+        .from("vendors")
+        .update({ 
+          tier, 
+          commission_rate: rate,
+          subscription_status: 'active' // Activate subscription
+        })
+        .eq("user_id", user.id);
 
-        if (error) throw error;
+      if (error) throw error;
         
-        setVendor(prev => prev ? { ...prev, tier, commission_rate: rate } : null);
-      } else {
-        // Create new vendor record (this will need INSERT policies)
-        const storeName = `${user.email?.split('@')[0]}'s Store`;
-        const { data, error } = await supabase
-          .from("vendors")
-          .insert({
-            user_id: user.id,
-            store_name: storeName,
-            tier,
-            commission_rate: rate
-          })
-          .select()
-          .single();
-
-        if (error) throw error;
-        setVendor(data);
-      }
-
       toast({
-        title: "Subscription Updated!",
-        description: `You are now on the ${tier} plan with ${rate}% commission rate.`,
+        title: "Subscription Activated!",
+        description: `You are now on the ${tier} plan. Your vendor features are now unlocked!`,
       });
+      
+      // Refresh the page to update context
+      window.location.reload();
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -113,7 +59,8 @@ export default function VendorDashboard() {
     }
   }
 
-  if (loading) {
+
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -169,44 +116,200 @@ export default function VendorDashboard() {
     }
   ];
 
+  // Show subscription plans if no active subscription
+  if (!hasActiveSubscription) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        
+        <main className="container mx-auto py-8 px-4">
+          <div className="max-w-4xl mx-auto">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-bold marketplace-gradient-text mb-2">
+                🚀 Welcome Vendor!
+              </h1>
+              <p className="text-muted-foreground">
+                To unlock your shop and start selling, please subscribe to a plan.
+              </p>
+            </div>
+
+            <Card className="shadow-marketplace">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Crown className="h-5 w-5 text-primary" />
+                  <span>Choose Your Subscription Plan</span>
+                </CardTitle>
+                <CardDescription>
+                  Select the perfect plan to start your selling journey
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {subscriptionPlans.map((plan) => {
+                    const Icon = plan.icon;
+                    return (
+                      <Card 
+                        key={plan.name} 
+                        className={`relative shadow-marketplace transition-smooth hover:shadow-marketplace-strong ${
+                          plan.popular ? 'ring-2 ring-primary' : ''
+                        }`}
+                      >
+                        {plan.popular && (
+                          <Badge 
+                            className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground"
+                          >
+                            Most Popular
+                          </Badge>
+                        )}
+                        
+                        <CardHeader className="text-center">
+                          <div className="mx-auto mb-4">
+                            <Icon className="h-8 w-8 text-primary" />
+                          </div>
+                          <CardTitle>{plan.name}</CardTitle>
+                          <CardDescription>{plan.description}</CardDescription>
+                          <div className="text-2xl font-bold text-primary">
+                            {plan.price}<span className="text-sm font-normal text-muted-foreground">/month</span>
+                          </div>
+                        </CardHeader>
+                        
+                        <CardContent className="text-center">
+                          <ul className="space-y-2 mb-6 text-sm text-muted-foreground">
+                            {plan.features.map((feature, index) => (
+                              <li key={index}>{feature}</li>
+                            ))}
+                          </ul>
+                          
+                          <Button
+                            onClick={() => updateSubscription(plan.name, plan.rate)}
+                            variant={plan.popular ? "hero" : "outline"}
+                            className="w-full"
+                            disabled={loading}
+                          >
+                            Choose {plan.name}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        
+        <Footer />
+      </div>
+    );
+  }
+
+  // Active subscription dashboard
   return (
     <div className="min-h-screen">
       <Header />
       
       <main className="container mx-auto py-8 px-4">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold marketplace-gradient-text mb-2">
               Vendor Dashboard
             </h1>
             <p className="text-muted-foreground">
-              Manage your store and subscription plan
+              Welcome back! Manage your store and track your performance.
             </p>
           </div>
 
-          {vendor && (
-            <Card className="mb-8 shadow-marketplace">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Store className="h-5 w-5" />
-                  <span>{vendor.store_name}</span>
-                </CardTitle>
-                <CardDescription>
-                  Current Plan: <Badge variant="secondary">{vendor.tier}</Badge> | 
-                  Commission Rate: {vendor.commission_rate}%
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
+          {/* Current Plan Info */}
+          <Card className="mb-8 shadow-marketplace">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Store className="h-5 w-5" />
+                <span>{vendor?.store_name}</span>
+              </CardTitle>
+              <CardDescription>
+                Current Plan: <Badge variant="secondary">{vendor?.tier}</Badge> | 
+                Commission Rate: {vendor?.commission_rate}%
+              </CardDescription>
+            </CardHeader>
+          </Card>
 
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <Card className="shadow-marketplace hover:shadow-marketplace-strong transition-smooth">
+              <CardContent className="p-6">
+                <Link to="/vendor/storefront" className="block">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Store className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">My Shop</h3>
+                      <p className="text-sm text-muted-foreground">View your storefront</p>
+                    </div>
+                  </div>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-marketplace hover:shadow-marketplace-strong transition-smooth">
+              <CardContent className="p-6">
+                <Link to="/vendor/products" className="block">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ShoppingBag className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Manage Products</h3>
+                      <p className="text-sm text-muted-foreground">Add & edit products</p>
+                    </div>
+                  </div>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-marketplace hover:shadow-marketplace-strong transition-smooth">
+              <CardContent className="p-6">
+                <Link to="/orders" className="block">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <ShoppingBag className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Orders</h3>
+                      <p className="text-sm text-muted-foreground">View customer orders</p>
+                    </div>
+                  </div>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-marketplace hover:shadow-marketplace-strong transition-smooth">
+              <CardContent className="p-6">
+                <Link to="/vendor/earnings" className="block">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <TrendingUp className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Earnings</h3>
+                      <p className="text-sm text-muted-foreground">Track your revenue</p>
+                    </div>
+                  </div>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Change Plan Section */}
           <Card className="shadow-marketplace">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Crown className="h-5 w-5 text-primary" />
-                <span>Subscription Plans</span>
+                <span>Upgrade Your Plan</span>
               </CardTitle>
               <CardDescription>
-                Choose the perfect plan for your business needs
+                Want better rates or more features? Choose a different plan.
               </CardDescription>
             </CardHeader>
             
@@ -214,18 +317,19 @@ export default function VendorDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {subscriptionPlans.map((plan) => {
                   const Icon = plan.icon;
+                  const isCurrentPlan = vendor?.tier === plan.name;
                   return (
                     <Card 
                       key={plan.name} 
                       className={`relative shadow-marketplace transition-smooth hover:shadow-marketplace-strong ${
-                        plan.popular ? 'ring-2 ring-primary' : ''
+                        isCurrentPlan ? 'ring-2 ring-primary bg-primary/5' : ''
                       }`}
                     >
-                      {plan.popular && (
+                      {isCurrentPlan && (
                         <Badge 
                           className="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-primary text-primary-foreground"
                         >
-                          Most Popular
+                          Current Plan
                         </Badge>
                       )}
                       
@@ -248,12 +352,12 @@ export default function VendorDashboard() {
                         </ul>
                         
                         <Button
-                          onClick={() => chooseSubscription(plan.name, plan.rate)}
-                          variant={plan.popular ? "hero" : "outline"}
+                          onClick={isCurrentPlan ? undefined : () => updateSubscription(plan.name, plan.rate)}
+                          variant={isCurrentPlan ? "secondary" : "outline"}
                           className="w-full"
-                          disabled={loading || vendor?.tier === plan.name}
+                          disabled={loading || isCurrentPlan}
                         >
-                          {vendor?.tier === plan.name ? "Current Plan" : `Choose ${plan.name}`}
+                          {isCurrentPlan ? "Current Plan" : `Switch to ${plan.name}`}
                         </Button>
                       </CardContent>
                     </Card>
