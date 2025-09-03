@@ -17,7 +17,8 @@ import VendorProductManager from "./pages/VendorProductManager";
 import VendorStorefront from "./pages/VendorStorefront";
 import OrderTracking from "./pages/OrderTracking";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminLogin from "./pages/AdminLogin";
+import SecureAdminLogin from "./pages/SecureAdminLogin";
+import { AdminRoute } from "@/components/AdminRoute";
 import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
@@ -43,8 +44,8 @@ const App = () => (
               <Route path="/vendor/dashboard" element={<VendorDashboard />} />
               <Route path="/vendor/products" element={<VendorProductManager />} />
               <Route path="/vendor/:vendorId" element={<VendorStorefront />} />
-              <Route path="/admin-login" element={<AdminLogin />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/login" element={<SecureAdminLogin />} />
+              <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

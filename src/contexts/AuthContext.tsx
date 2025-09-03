@@ -20,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   userProfile: UserProfile | null;
   vendor: Vendor | null;
+  isAdmin: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -31,10 +32,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [vendor, setVendor] = useState<Vendor | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const loadUserData = async (userId: string) => {
     try {
-      // Load user profile
+      // Load user profile from users table
       const { data: profileData } = await supabase
         .from('users')
         .select('role')
@@ -42,6 +44,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
       
       setUserProfile(profileData);
+
+      // Check if user is admin using the secure role system
+      const { data: adminCheck } = await supabase
+        .rpc('has_role', { _user_id: userId, _role: 'admin' });
+      
+      setIsAdmin(adminCheck || false);
 
       // If user is a vendor, load vendor data
       if (profileData?.role === 'vendor') {
@@ -68,10 +76,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          loadUserData(session.user.id);
+          // Defer Supabase calls to prevent auth deadlocks
+          setTimeout(() => {
+            loadUserData(session.user.id);
+          }, 0);
         } else {
           setUserProfile(null);
           setVendor(null);
+          setIsAdmin(false);
         }
         setLoading(false);
       }
@@ -103,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       userProfile,
       vendor,
+      isAdmin,
       signOut,
     }}>
       {children}
