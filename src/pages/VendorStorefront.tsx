@@ -11,7 +11,6 @@ import { useCart } from "@/contexts/CartContext";
 import { 
   Store,
   MapPin,
-  Phone,
   Globe,
   Star,
   ShoppingCart,
@@ -21,11 +20,6 @@ import {
 interface Vendor {
   id: string;
   store_name: string;
-  description?: string;
-  logo_url?: string;
-  website?: string;
-  phone_number?: string;
-  address?: string;
   tier: string;
   subscription_status: string;
   created_at: string;
@@ -57,10 +51,10 @@ export default function VendorStorefront() {
 
   const loadVendorData = async () => {
     try {
-      // Load vendor info
+      // Load vendor info (only public storefront data - no sensitive business intelligence)
       const { data: vendorData, error: vendorError } = await supabase
         .from("vendors")
-        .select("*")
+        .select("id, store_name, tier, subscription_status, created_at")
         .eq("id", vendorId)
         .eq("subscription_status", "active")
         .single();
@@ -148,13 +142,6 @@ export default function VendorStorefront() {
       <section className="bg-gradient-primary py-16 text-white">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center">
-            {vendor.logo_url && (
-              <img 
-                src={vendor.logo_url} 
-                alt={`${vendor.store_name} logo`}
-                className="w-20 h-20 rounded-full mx-auto mb-6 object-cover border-4 border-white/20"
-              />
-            )}
             <h1 className="text-5xl font-bold mb-4">{vendor.store_name}</h1>
             <p className="text-xl opacity-90 mb-2">Premium Marketplace Store</p>
             <div className="flex items-center justify-center space-x-4 mb-6">
@@ -166,11 +153,6 @@ export default function VendorStorefront() {
                 Member since {new Date(vendor.created_at).getFullYear()}
               </span>
             </div>
-            {vendor.description && (
-              <p className="text-lg opacity-80 max-w-2xl mx-auto">
-                {vendor.description}
-              </p>
-            )}
           </div>
         </div>
       </section>
@@ -189,35 +171,7 @@ export default function VendorStorefront() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {vendor.address && (
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
-                      <span className="text-sm">{vendor.address}</span>
-                    </div>
-                  )}
-                  
-                  {vendor.phone_number && (
-                    <div className="flex items-center space-x-3">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{vendor.phone_number}</span>
-                    </div>
-                  )}
-                  
-                  {vendor.website && (
-                    <div className="flex items-center space-x-3">
-                      <Globe className="h-4 w-4 text-muted-foreground" />
-                      <a 
-                        href={vendor.website.startsWith('http') ? vendor.website : `https://${vendor.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        Visit Website
-                      </a>
-                    </div>
-                  )}
-                  
-                  <div className="pt-4 border-t">
+                  <div className="pt-4">
                     <p className="text-sm text-muted-foreground mb-2">
                       <Package className="h-4 w-4 inline mr-1" />
                       {products.length} Products Available
